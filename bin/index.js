@@ -1,12 +1,12 @@
 #!/usr/bin/env node
+import inquirer from "inquirer";
+import {PathPrompt} from "inquirer-path";
+import inquirerFuzzyPath from "inquirer-fuzzy-path";
+import migrateFiles from "../src/migrateFiles.js";
+import writeToFile from "../src/writeToFile.js";
 
-const inquirer = require('inquirer')
-const { PathPrompt } = require('inquirer-path')
-inquirer.registerPrompt('fuzzypath', require('inquirer-fuzzy-path'))
+inquirer.registerPrompt('fuzzypath', inquirerFuzzyPath)
 inquirer.prompt.registerPrompt('path', PathPrompt)
-
-const writeToFile = require('../src/writeToFile')
-const migrateFiles = require('../src/migrateFiles')
 
 async function run () {
   const answers = await inquirer.prompt([

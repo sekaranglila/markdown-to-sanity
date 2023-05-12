@@ -1,6 +1,6 @@
-const Schema = require('@sanity/schema').default
+import {Schema} from '@sanity/schema'
 
-module.exports = Schema.compile({
+const defaultSchema = Schema.compile({
   name: 'myBlog',
   types: [
     {
@@ -45,23 +45,6 @@ module.exports = Schema.compile({
                   ]
                 }
               ]
-            },
-            {
-              name: 'image',
-              type: 'object',
-              title: 'image',
-              fields: [
-                {
-                  title: 'src',
-                  name: 'src',
-                  type: 'string'
-                },
-                {
-                  title: 'alt',
-                  name: 'alt',
-                  type: 'string'
-                }
-              ]
             }
           ]
         }
@@ -69,3 +52,5 @@ module.exports = Schema.compile({
     }
   ]
 })
+
+export default defaultSchema;

@@ -1,18 +1,25 @@
-const unified = require('unified')
-const frontmatter = require('remark-frontmatter')
-const extract = require('remark-extract-frontmatter')
-const markdown = require('remark-parse')
-const html = require('remark-html')
-const yaml = require('yaml').parse
+import unified from "unified";
+import remarkParse from "remark-parse";
+import remarkFrontmatter from "remark-frontmatter";
+import remarkGfm from "remark-gfm";
+import remarkExtractFrontmatter from "remark-extract-frontmatter";
+import remarkHtml from "remark-html";
+import YAML from 'yaml'
+
 
 async function convertMDtoVFile (markdownContent) {
   const VFile = await unified()
-    .use(markdown)
-    .use(frontmatter)
-    .use(extract, { name: 'frontmatter', yaml: yaml })
-    .use(html)
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkFrontmatter)
+    .use(remarkExtractFrontmatter, { name: 'frontmatter', yaml: YAML.parse })
+    .use(remarkHtml)
     .process(markdownContent)
+
+  // eslint-disable-next-line no-console
+  console.log(String(VFile));
+
   return VFile
 }
 
-module.exports = convertMDtoVFile
+export default convertMDtoVFile;

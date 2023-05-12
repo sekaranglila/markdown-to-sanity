@@ -1,5 +1,7 @@
-const blockTools = require('@sanity/block-tools').default
-const jsdom = require('jsdom')
+import {htmlToBlocks} from "@sanity/block-tools";
+import jsdom from "jsdom";
+import defaultSchema from "./defaultSchema.js";
+
 const { JSDOM } = jsdom
 const HTMLpattern = /<[a-z][\s\S]*>/
 
@@ -7,7 +9,6 @@ const HTMLpattern = /<[a-z][\s\S]*>/
  *  block tools needs a schema definition to now what
  * types are available
  *  */
-const defaultSchema = require('./defaultSchema')
 const blockContentType = defaultSchema
   .get('blogPost')
   .fields.find(field => field.name === 'body').type
@@ -17,30 +18,6 @@ function convertHTMLtoPortableText (HTMLDoc) {
     return []
   }
   const rules = [
-    {
-      deserialize(el, next, block) {
-        if (el.tagName.toLowerCase() !== "figure") {
-          return undefined;
-        }
-        const img = Array.from(el.children).find(
-          child => child.tagName.toLowerCase() === "img"
-        );
-        const caption = Array.from(el.children).find(
-          child => child.tagName.toLowerCase() === "figcaption"
-        );
-
-        return block({
-          _type: "figure",
-          image: {
-            // using the format for importing assets via the CLI
-            // https://www.sanity.io/docs/data-store/importing-data#import-using-the-cli
-            _sanityAsset: `image@${img.getAttribute("src")}`
-          },
-          alt: img.getAttribute("alt"),
-          caption: caption ? caption.textContent : ''
-        });
-      }
-    },
     {
       // Special case for code blocks (wrapped in pre and code tag)
       deserialize (el, next, block) {
@@ -69,44 +46,111 @@ function convertHTMLtoPortableText (HTMLDoc) {
       }
     },
     {
-      deserialize (el, next, block) {
-        if (el.tagName === 'IMG') {
-          return {
-            _type: 'img',
-            asset: {
-              src: `${el.getAttribute('src').replace(/^\/\//, 'https://')}`,
-              alt: `${el.getAttribute('alt')}`
-            }
-          }
+      // tables
+      deserialize(el, next, block) {
+        if (el.tagName.toLowerCase() !== "table") {
+          return undefined;
         }
 
+        const rows = [];
+        for (let i = 0; i < el.children.length; i++) {
+          const tableElement = el.children[i];
+          tableElement.childNodes.forEach(node => {
+            if (node.hasChildNodes()) {
+              let cells = [];
+              node.childNodes.forEach(child => {
+                if (child.textContent !== ' ') {
+                  cells.push(child.textContent);
+                }
+              })
+              rows.push({
+                _type: "tableRow",
+                cells
+              })
+            }
+          })
+        }
+
+        return block({
+          _type: "table",
+          rows
+        });
+      }
+    },
+    {
+      deserialize(el, next, block) {
         if (
           el.tagName.toLowerCase() === 'p' &&
-          el.childNodes.length === 1 &&
-          el.childNodes.tagName &&
-          el.childNodes[0].tagName.toLowerCase() === 'img'
+          el.childNodes.length > 0 &&
+          el.firstChild.nodeName.toLowerCase() === 'img'
         ) {
-          return {
-            _type: 'img',
-            asset: {
-              src: `${el.getAttribute('src').replace(/^\/\//, 'https://')}`,
-              alt: `${el.getAttribute('alt')}`
-            }
-          }
+          const images = [].filter.call(el.children, function(node) {
+            return node.nodeName.toLowerCase() === 'img'
+          })
+          const links = []
+          images.forEach(image => {
+            links.push(image.getAttribute('src'))
+          })
+          return block({
+            _type: 'customAsset',
+            assetType: 'images',
+            assetLinks: links
+          })
         }
-        // Only convert block-level images, for now
-        return undefined
+        return undefined;
       }
-    }
+    },
+    {
+      deserialize (el, next, block) {
+        if (el.tagName.toLowerCase() !== 'img') {
+          return undefined
+        }
+        return {
+          _type: 'span',
+          marks: [
+            "strong"
+          ],
+          text: `Asset Link: ${el.getAttribute('src')}`
+        }
+      }
+    },
+    {
+      deserialize(el, next, block) {
+        if (
+          el.tagName.toLowerCase() !== 'source'
+        ) {
+          return undefined;
+        }
+        return block({
+          _type: 'customAsset',
+          assetType: 'videos',
+          assetLinks: [el.getAttribute('src')]
+        })
+      }
+    },
+    {
+      deserialize(el, next, block) {
+        if (
+          el.tagName.toLowerCase() !== 'iframe'
+        ) {
+          return undefined;
+        }
+        return block({
+          _type: 'youtube',
+          url: el.getAttribute('src')
+        })
+      }
+    },
   ]
   /**
    * Since we're in a node context, we need
    * to give block-tools JSDOM in order to
    * parse the HTML DOM elements
    */
-  return blockTools.htmlToBlocks(HTMLDoc, blockContentType, {
+  return htmlToBlocks(HTMLDoc, blockContentType, {
     rules,
     parseHtml: html => new JSDOM(html).window.document
   })
 }
-module.exports = convertHTMLtoPortableText
+
+export default convertHTMLtoPortableText;

@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-const fs = require('fs')
+import fs from "fs";
 
 function writeToFile ({ filename, sanityDocuments, outputPath }) {
   const path = `${outputPath}/${filename.split('.ndjson')[0]}`
@@ -18,4 +18,4 @@ function writeToFile ({ filename, sanityDocuments, outputPath }) {
   })
 }
 
-module.exports = writeToFile
+export default writeToFile;

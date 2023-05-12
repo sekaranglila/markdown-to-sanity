@@ -1,4 +1,4 @@
-const globby = require('globby')
+import globby from "globby";
 
 async function globMDFiles (path) {
   const options = {
@@ -9,4 +9,4 @@ async function globMDFiles (path) {
   return files.map(file => `${path}/${file}`)
 }
 
-module.exports = globMDFiles
+export default globMDFiles;

@@ -1,7 +1,7 @@
-const globMDFiles = require('./globMDFiles')
-const extractMDfromFile = require('./extractMDfromFile')
-const convertMDtoVFile = require('./convertMDtoVFile')
-const convertToSanityDocument = require('./convertToSanityDocument')
+import globMDFiles from "./globMDFiles.js"
+import extractMDfromFile from "./extractMDfromFile.js";
+import convertMDtoVFile from "./convertMDtoVFile.js";
+import convertToSanityDocument from "./convertToSanityDocument.js";
 
 async function migrateFiles (inputPath, filename, outputPath) {
   const files = await globMDFiles(inputPath)
@@ -11,4 +11,4 @@ async function migrateFiles (inputPath, filename, outputPath) {
   return sanityDocuments
 }
 
-module.exports = migrateFiles
+export default migrateFiles;

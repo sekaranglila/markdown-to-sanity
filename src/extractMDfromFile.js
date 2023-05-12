@@ -1,4 +1,4 @@
-const { readFile } = require('fs')
+import {readFile} from "fs";
 
 async function extractMDfromFile(filePath) {
   const mdContent = await new Promise((resolve, reject) => readFile(filePath, 'utf-8', (err, data) => {
@@ -10,4 +10,4 @@ async function extractMDfromFile(filePath) {
   return mdContent
 }
 
-module.exports = extractMDfromFile
+export default extractMDfromFile;
